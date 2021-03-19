@@ -121,6 +121,7 @@ class AlternateProblem(DiscreteProblem):
     def required_bits(self):
         return self.nbits
 
+
 class Interpreter:
     """Base class for interpreters."""
     precision = None
