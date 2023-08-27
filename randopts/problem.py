@@ -68,6 +68,39 @@ class KBitProblem(DiscreteProblem):
         return (np.array(list(query)) == self.sifrem).sum()
 
 
+class TravelingSalesman(DiscreteProblem):
+    """Visit all the cities, with minimum cost."""
+    def __init__(self, cost_matrix, cost_per_query=None):
+        super().__init__(cost_per_query=cost_per_query)
+        self.cost_matrix = cost_matrix
+
+    def cost_matrix():
+        doc = "The cost_matrix property."
+        def fget(self):
+            return self._cost_matrix
+        def fset(self, value):
+            self._cost_matrix = np.array(value)
+        def fdel(self):
+            del self._cost_matrix
+        return locals()
+    cost_matrix = property(**cost_matrix())
+
+    @property
+    def required_bits(self):
+        return self.cost_matrix.shape[0] ** 2
+
+    def fitness_function(self, query):
+        query = np.array(list(query)).astype(int).reshape(*self.cost_matrix.shape)
+        if not ((query.sum(axis=1) == 1).all() and (query.sum(axis=0) == 1).all()):
+            fitness = -query.sum()
+        elif (self.cost_matrix[query == 1] < 0).any():
+            fitness = -500
+        else:
+            fitness = 1 / self.cost_matrix[query == 1].sum()
+        return fitness
+
+
+
 class Knapsack(DiscreteProblem):
     """3 things you would take to a Desert Island."""
     params = ('weights', 'values', 'limit')
@@ -225,6 +258,7 @@ class WeightConverter:
         floats = self.to_float(bit_string)
         coefs, intercepts = self.rebuild(floats)
         return coefs, intercepts
+
 
 
 def logistic(x):
@@ -419,3 +453,15 @@ class BullsAndCowsHex(BullsAndCows):
     base = staticmethod(lambda x: eval('0x'+x))
     ub = 15
     charlen = 4
+
+class BitStringNormalizedInterpreter(BitStringInterpreter):
+    """Integer interpreter."""
+
+    def __init__(self, precision=4, ub=1):
+        self.precision = precision
+        self.ub = ub
+
+    def convert(self, bits: str) -> int:
+        result = super().convert(bits) / 2**self.precision * self.ub
+        return result
+
