@@ -1,3 +1,4 @@
 *__pycache__*
 randopts.egg-info/*
+randopts.egg-info
 *.ipynb_checkpoints*
