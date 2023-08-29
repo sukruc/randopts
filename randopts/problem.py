@@ -168,7 +168,7 @@ class BitFloatInterpreter(Interpreter):
     """Floating point interpreter."""
 
     def convert(self, bits: str) -> float:
-        result = bitstring.BitArray(bin=bits+(32 - self.precision)*'0').float
+        result = bitstring.BitArray(bin='0' + bits+(32 - self.precision)*'0').float
         if np.isnan(result):
             result = 0.
         return result
@@ -181,8 +181,14 @@ class BitStringInterpreter(Interpreter):
         self.precision = precision
 
     def convert(self, bits: str) -> int:
-        result = bitstring.BitArray(bin=bits).int
+        result = bitstring.BitArray(bin='0' + bits).int
         return result
+    
+    def encode(self, value):
+        raw = bin(value)[2:]
+        if len(raw) > self.precision:
+            raise OverflowError
+        return raw.zfill(self.precision)
 
 
 class BitFloat16Interpreter(BitFloatInterpreter):
@@ -464,4 +470,10 @@ class BitStringNormalizedInterpreter(BitStringInterpreter):
     def convert(self, bits: str) -> int:
         result = super().convert(bits) / 2**self.precision * self.ub
         return result
+    
+    def encode(self, value):
+        if value > self.ub:
+            raise OverflowError
+        val = bin(int(value / self.ub * 2**self.precision))[2:].zfill(self.precision)
+        return val
 

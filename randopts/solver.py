@@ -141,6 +141,7 @@ class Solver:
         self.verbose = verbose
         self.solution_time = None
         self.solution_arr = []
+        self.initial_solution = None
 
     def vprint(self, *args, **kwargs):
         if self.verbose:
@@ -169,6 +170,8 @@ class Solver:
 
     def fit(self, problem):
         self.nbits = problem.required_bits
+        if hasattr(problem, "provide_initial_solution"):
+            self.initial_solution = problem.provide_initial_solution()
         return self
 
 
@@ -238,7 +241,7 @@ class HillClimber(RandomSearcher):
     """
 
     def _a_search(self, problem):
-        point = get_random_bits(self.nbits)
+        point = get_random_bits(self.nbits) if self.initial_solution is not None else self.initial_solution
         self.best = point
         iters = 0
         while iters < self.maksiter:
@@ -344,7 +347,7 @@ class Annealer(Solver):
             return np.exp((f1 - f0) / self.temperature)
 
     def _a_search(self, problem):
-        point = get_random_bits(self.nbits)
+        point = get_random_bits(self.nbits) if self.initial_solution is not None else self.initial_solution
         wait = 0
         iters = 0
         while True:
